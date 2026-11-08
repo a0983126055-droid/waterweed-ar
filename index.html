@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>我的第一個網頁</title>
+</head>
+<body>
+  <h1>Hello HTML!</h1>
+  <p>這是我的第一個 HTML 檔案。</p>
+</body>
+</html>
+
+
+<title>水蘊草 AR 探索</title>
+
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+<style>
+body{
+ margin:0;
+ background:#102d29;
+ font-family:sans-serif;
+}
+
+#guide{
+ position:fixed;
+ top:15px;
+ left:10px;
+ right:10px;
+ z-index:10;
+ text-align:center;
+ color:white;
+ background:#075e54dd;
+ padding:14px;
+ border-radius:14px;
+}
+
+#status{
+ font-size:14px;
+ color:#d6fff2;
+}
+
+#back{
+ position:fixed;
+ bottom:25px;
+ left:50%;
+ transform:translateX(-50%);
+ z-index:20;
+ border:0;
+ border-radius:25px;
+ padding:14px 25px;
+ background:#fff;
+ color:#075e54;
+ font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="guide">
+ <h3>🌿 水蘊草 AR 探索</h3>
+ <div id="status">正在啟動相機，請允許相機權限...</div>
+</div>
+
+<a-scene
+ mindar-image="
+  imageTargetSrc: ./targets.mind;
+  autoStart: true;
+  maxTrack: 1;
+  uiLoading: yes;
+  uiScanning: yes;
+  uiError: yes;
+ "
+ color-space="sRGB"
+ renderer="colorManagement: true, physicallyCorrectLights"
+ vr-mode-ui="enabled: false"
+ device-orientation-permission-ui="enabled: false">
+
+ <a-assets timeout="30000">
+  <a-asset-item
+   id="plant"
+   src="./waterweed.glb">
+  </a-asset-item>
+ </a-assets>
+
+ <a-camera
+  position="0 0 0"
+  look-controls="enabled: false">
+ </a-camera>
+
+ <!-- 圖卡辨識成功後顯示模型 -->
+
+ <a-entity id="target"
+  mindar-image-target="targetIndex: 0">
+
+  <a-gltf-model
+   src="#plant"
+   position="0 0 0.05"
+   rotation="0 0 0"
+   scale="0.2 0.2 0.2">
+  </a-gltf-model>
+
+ </a-entity>
+
+</a-scene>
+
+<button id="back" onclick="history.back()">
+ 返回學習平台
+</button>
+
+<script>
+
+const statusText=document.getElementById('status');
+const target=document.getElementById('target');
+
+target.addEventListener('targetFound',()=>{
+ statusText.textContent='🎉 成功辨識！正在觀察水蘊草！';
+});
+
+target.addEventListener('targetLost',()=>{
+ statusText.textContent='請將相機對準水蘊草 AR 圖卡';
+});
+
+document.querySelector('a-scene').addEventListener('arReady',()=>{
+ statusText.textContent='相機已啟動，請掃描 AR 圖卡！';
+});
+
+document.querySelector('a-scene').addEventListener('arError',()=>{
+ statusText.textContent='相機啟動失敗，請確認相機權限及 HTTPS 網址。';
+});
+
+</script>
+
+</body>
+</html>

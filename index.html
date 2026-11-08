@@ -1,137 +1,217 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>我的第一個網頁</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>水蘊草 AR 探索</title>
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <!-- MindAR 圖像辨識 -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #102d29;
+      font-family: sans-serif;
+    }
+
+    #guide {
+      position: fixed;
+      top: 15px;
+      left: 10px;
+      right: 10px;
+      z-index: 10;
+      text-align: center;
+      color: white;
+      background: #075e54dd;
+      padding: 14px;
+      border-radius: 14px;
+    }
+
+    #guide h3 {
+      margin: 0 0 8px;
+    }
+
+    #status {
+      font-size: 14px;
+      color: #d6fff2;
+      line-height: 1.6;
+    }
+
+    #back {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      border: 0;
+      border-radius: 25px;
+      padding: 14px 25px;
+      background: white;
+      color: #075e54;
+      font-size: 16px;
+    }
+  </style>
 </head>
-<body>
-  <h1>Hello HTML!</h1>
-  <p>這是我的第一個 HTML 檔案。</p>
-</body>
-</html>
-
-
-<title>水蘊草 AR 探索</title>
-
-<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
-<style>
-body{
- margin:0;
- background:#102d29;
- font-family:sans-serif;
-}
-
-#guide{
- position:fixed;
- top:15px;
- left:10px;
- right:10px;
- z-index:10;
- text-align:center;
- color:white;
- background:#075e54dd;
- padding:14px;
- border-radius:14px;
-}
-
-#status{
- font-size:14px;
- color:#d6fff2;
-}
-
-#back{
- position:fixed;
- bottom:25px;
- left:50%;
- transform:translateX(-50%);
- z-index:20;
- border:0;
- border-radius:25px;
- padding:14px 25px;
- background:#fff;
- color:#075e54;
- font-size:16px;
-}
-</style>
-</head>
 
 <body>
 
-<div id="guide">
- <h3>🌿 水蘊草 AR 探索</h3>
- <div id="status">正在啟動相機，請允許相機權限...</div>
-</div>
+  <div id="guide">
+    <h3>🌿 水蘊草 AR 探索</h3>
+    <div id="status">
+      正在啟動相機，請允許相機權限...
+    </div>
+  </div>
 
-<a-scene
- mindar-image="
-  imageTargetSrc: ./targets.mind;
-  autoStart: true;
-  maxTrack: 1;
-  uiLoading: yes;
-  uiScanning: yes;
-  uiError: yes;
- "
- color-space="sRGB"
- renderer="colorManagement: true, physicallyCorrectLights"
- vr-mode-ui="enabled: false"
- device-orientation-permission-ui="enabled: false">
+  <a-scene
+    mindar-image="
+      imageTargetSrc: ./targets.mind;
+      autoStart: true;
+      maxTrack: 1;
+      uiLoading: yes;
+      uiScanning: yes;
+      uiError: yes;
+    "
+    color-space="sRGB"
+    renderer="colorManagement: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
 
- <a-assets timeout="30000">
-  <a-asset-item
-   id="plant"
-   src="./waterweed.glb">
-  </a-asset-item>
- </a-assets>
+    <!-- 直接使用 GLB 網址載入 -->
+    <a-assets timeout="60000">
+      <a-asset-item
+        id="plant"
+        src="./waterweed.glb">
+      </a-asset-item>
+    </a-assets>
 
- <a-camera
-  position="0 0 0"
-  look-controls="enabled: false">
- </a-camera>
+    <!-- 相機 -->
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
 
- <!-- 圖卡辨識成功後顯示模型 -->
+    <!-- 辨識到圖卡後顯示模型 -->
+    <a-entity
+      id="target"
+      mindar-image-target="targetIndex: 0">
 
-<a-entity id="target" mindar-image-target="targetIndex: 0">
+      <a-entity
+        id="plantModel"
+        gltf-model="#plant"
+        position="0 0 0"
+        rotation="0 0 0"
+        scale="0.1 0.1 0.1">
+      </a-entity>
 
-  <a-gltf-model
-    id="plantModel"
-    src="#plant"
-    position="0 0 0"
-    rotation="0 0 0"
-    scale="0.1 0.1 0.1">
-  </a-gltf-model>
+    </a-entity>
 
-</a-entity>
+  </a-scene>
 
-</a-scene>
+  <button id="back" onclick="history.back()">
+    返回學習平台
+  </button>
 
-<button id="back" onclick="history.back()">
- 返回學習平台
-</button>
+  <script>
+    const statusText = document.getElementById("status");
+    const scene = document.querySelector("a-scene");
+    const target = document.getElementById("target");
+    const model = document.getElementById("plantModel");
 
-<script>
+    // 1. 相機與 AR 啟動狀態
+    scene.addEventListener("arReady", function () {
+      statusText.textContent =
+        "📷 相機已啟動，請將鏡頭對準水蘊草 AR 圖卡！";
+    });
 
-const statusText=document.getElementById('status');
-const target=document.getElementById('target');
+    scene.addEventListener("arError", function (event) {
+      console.error("AR 啟動失敗：", event);
 
-target.addEventListener('targetFound',()=>{
- statusText.textContent='🎉 成功辨識！正在觀察水蘊草！';
-});
+      statusText.textContent =
+        "相機啟動失敗，請檢查相機權限及 HTTPS 網址。";
+    });
 
-target.addEventListener('targetLost',()=>{
- statusText.textContent='請將相機對準水蘊草 AR 圖卡';
-});
+    // 2. 圖卡辨識成功
+    target.addEventListener("targetFound", function () {
+      statusText.textContent =
+        "🎉 已辨識圖卡，正在顯示水蘊草模型！";
 
-document.querySelector('a-scene').addEventListener('arReady',()=>{
- statusText.textContent='相機已啟動，請掃描 AR 圖卡！';
-});
+      console.log("MindAR 已成功辨識圖卡");
+    });
 
-document.querySelector('a-scene').addEventListener('arError',()=>{
- statusText.textContent='相機啟動失敗，請確認相機權限及 HTTPS 網址。';
-});
+    // 3. 圖卡離開鏡頭
+    target.addEventListener("targetLost", function () {
+      statusText.textContent =
+        "請將相機重新對準水蘊草 AR 圖卡";
+    });
 
-</script>
+    // 4. GLB 模型成功載入
+    model.addEventListener("model-loaded", function (event) {
+      console.log("GLB 模型載入成功！", event);
+
+      const mesh = model.getObject3D("mesh");
+
+      if (!mesh) {
+        statusText.textContent =
+          "模型載入事件已觸發，但找不到模型物件。";
+        return;
+      }
+
+      // 計算模型實際尺寸
+      const box = new THREE.Box3().setFromObject(mesh);
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+
+      box.getSize(size);
+      box.getCenter(center);
+
+      console.log("模型原始尺寸：", size);
+      console.log("模型中心點：", center);
+
+      const maxSize = Math.max(size.x, size.y, size.z);
+
+      if (!Number.isFinite(maxSize) || maxSize <= 0) {
+        statusText.textContent =
+          "模型載入了，但模型尺寸異常，請檢查 GLB。";
+        return;
+      }
+
+      // 將模型中心移至辨識圖卡中心
+      mesh.position.sub(center);
+
+      // 自動縮放，讓模型最大邊長約為 0.5 個世界單位
+      const desiredSize = 0.5;
+      const scale = desiredSize / maxSize;
+
+      model.setAttribute("scale", {
+        x: scale,
+        y: scale,
+        z: scale
+      });
+
+      console.log("自動縮放比例：", scale);
+
+      statusText.textContent =
+        "🌿 水蘊草模型已載入！請觀察圖卡上的 3D 模型。";
+    });
+
+    // 5. GLB 模型載入失敗
+    model.addEventListener("model-error", function (event) {
+      console.error("GLB 模型載入失敗：", event);
+
+      statusText.textContent =
+        "❌ 模型載入失敗！請檢查 waterweed.glb 檔案及網址。";
+    });
+
+  </script>
 
 </body>
 </html>
